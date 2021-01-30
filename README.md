@@ -12,7 +12,9 @@ openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out serv
 ```
 
 2): Upload `server.crt` in your Saleforce connected App setting
+
 3): Save `server.key` in your GitLab project environment variable `SERVER_KEY`. GitLab CI/CD [environment variables](https://gitlab.com/help/ci/variables/README#variables)
+
 4): Create environment variable in your GitLab project for `SF_CONSUMER_KEY` and `SF_USERNAME` (username that you to use in the CI)
 
 ## Getting Started
