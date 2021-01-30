@@ -1,53 +1,45 @@
-# sfdx-gitlab-org
+# sfdx ci using gitlab
 
-For a fully guided walkthrough of setting up and configuring continuous integration using scratch orgs and Salesforce CLI,  see the [Continuous Integration Using Salesforce DX](https://trailhead.salesforce.com/modules/sfdx_travis_ci) Trailhead module.
+## Step 1
 
-This repository shows how to successfully set up deploying to non-scratch orgs (sandbox or production) with GitLab CI/CD. We make a few assumptions in this README. Continue only if you have completed these critical configuration prerequisites.
+1): Make sure to create open SSL certificate for digigtal signatue
 
-- You know how to set up your GitLab repository with GitLab CI/CD. (Need help? See the GitLab [Getting Started guide](https://docs.gitlab.com/ee/ci/README.html).)
+```shel
+openssl genrsa -des3 -passout pass:SomePassword -out server.pass.key 2048
+openssl rsa -passin pass:SomePassword -in server.pass.key -out server.key
+openssl req -new -key server.key -out server.csr
+openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
+```
 
-- You have properly set up JWT-based authorization flow (headless). We recommended using [these steps for generating your self-signed SSL certificate](https://devcenter.heroku.com/articles/ssl-certificate-self). 
+2): Upload `server.crt` in your Saleforce connected App setting
+3): Save `server.key` in your GitLab project environment variable `SERVER_KEY`. GitLab CI/CD [environment variables](https://gitlab.com/help/ci/variables/README#variables)
+4): Create environment variable in your GitLab project for `SF_CONSUMER_KEY` and `SF_USERNAME` (username that you to use in the CI)
 
 ## Getting Started
-1) [Mirror](https://docs.gitlab.com/ee/workflow/repository_mirroring.html) this repo in to your GitLab account.
 
-2) Clone your mirrored repo locally: `git clone https://gitlab.com/<gitlab_username>/sfdx-gitlab-org.git`
+1) Clone the repo `git clone https://github.com/Adiii717/sfdx-gitlab-org.git`
 
-3) Make sure that you have Salesforce CLI installed. Run `sfdx force --help` and confirm you see the command output. If you don't have it installed, download and install it from [here](https://developer.salesforce.com/tools/sfdxcli).
+2) Build this docker image or use it from DockerHub
 
-4) Setup a JWT-based auth flow for the target orgs that you want to deploy to. This step creates a `server.key` file that is used in subsequent steps.
-(https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_jwt_flow.htm)  
+```shell
+docker build -t adiii717/docker-sfdx-cli .
+docker run adiii717/docker-sfdx-cli sfdx --help
+```
 
-5) Confirm that you can perform a JWT-based auth to the target orgs: `sfdx auth:jwt:grant --clientid <your_consumer_key> --jwtkeyfile server.key --username <your_username>`
+If you want to run/test your local code
 
-    **Note:** For more info on setting up JWT-based auth, see [Authorize an Org Using the JWT-Based Flow](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_jwt_flow.htm) in the [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev).
-
-6) From your JWT-based connected app on Salesforce, retrieve the generated `Consumer Key`.
-
-7) Set up GitLab CI/CD [environment variables](https://gitlab.com/help/ci/variables/README#variables) for your Salesforce `Consumer Key` and `Username`. Note that this username is the username that you use to access your Salesforce org.
-
-    Create an environment variable named `SF_CONSUMER_KEY` and set it as protected.
-
-    Create an environment variable named `SF_USERNAME` and set it as protected.
-
-    **Note:** Setting the variables as protected requires that you set the branch to protected as well.
-   
-8) Encrypt the generated `server.key` file and add the encrypted file (`server.key.enc`) to the folder named `assets`.
-
-    `openssl aes-256-cbc -salt -e -in server.key -out server.key.enc -k password`
-
-9) Set up GitLab CI/CD [environment variable](https://gitlab.com/help/ci/variables/README#variables) for the password you used to encrypt your `server.key` file.
-
-    Create an environment variable named `SERVER_KEY_PASSWORD` and set it as protected.
+```shell
+docker run -it --workdir=/app -v $PWD/:/app adiii717/docker-sfdx-cli
+```
 
 Now you're ready to go! Wwhen you commit and push a change, your change kicks off a GitLab CI build.
 
 Enjoy!
 
-## Contributing to the Repository ###
+## Contributing to the Repository
 
 If you find any issues or opportunities for improving this repository, fix them! Feel free to contribute to this project by [forking](http://help.github.com/fork-a-repo/) this repository and making changes to the content. Once you've made your changes, share them back with the community by sending a pull request. See [How to send pull requests](http://help.github.com/send-pull-requests/) for more information about contributing to GitHub projects.
 
-## Reporting Issues ###
+## Reporting Issues
 
-If you find any issues with this demo that you can't fix, feel free to report them in the [issues](https://github.com/forcedotcom/sfdx-gitlab-org/issues) section of this repository.
+If you find any issues with this demo that you can't fix, feel free to report them in the [issues](https://github.com/Adiii717/sfdx-gitlab-org/issues) section of this repository.
